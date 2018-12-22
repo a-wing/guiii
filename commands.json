@@ -1,0 +1,5 @@
+[
+  { "name": "ls", "value": "ls" },
+  { "name": "sleep 3", "value": "sleep 3" },
+  { "name": "echo 233333333", "value": "echo 233333333" }
+]
