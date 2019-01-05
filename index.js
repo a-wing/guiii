@@ -1,16 +1,28 @@
-const port = process.env.PORT || 3000
+
+//import YAML from 'yaml'
+const YAML = require('yaml')
+const fs = require('fs')
+const config = YAML.parse(fs.readFileSync('./config.yml', 'utf8'))
+
+console.log(config)
+console.log(config.server.port)
+//const port = process.env.PORT || 3000
 
 const { exec } = require('child_process')
 
 const app = require('http').createServer(handler)
 const io = require('socket.io')(app)
-const fs = require('fs')
 
 const auth = require('basic-auth')
 const compare = require('tsscmp')
 
 function check (name, pass) {
-  return true && compare(name, 'admin') && compare(pass, 'admin')
+  let matching = config.accounts.filter((account) => {
+    return compare(name, account.user) && compare(pass, account.pass)
+  })
+
+  //console.log(matching)
+  return matching.length ? true : false
 }
 
 
@@ -45,7 +57,7 @@ getCmdSh('scripts', (cmd) => {
 })
 
 
-app.listen(port)
+app.listen(config.server.port)
 
 function handler (req, res) {
   var credentials = auth(req)

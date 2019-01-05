@@ -1,0 +1,13 @@
+accounts:
+  - user: admin
+    pass: admin
+  - user: test
+    pass: test
+
+server:
+  port: 3000
+
+run_path:
+  - commands.json
+  - scripts/
+
