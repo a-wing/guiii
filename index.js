@@ -6,6 +6,14 @@ const app = require('http').createServer(handler)
 const io = require('socket.io')(app)
 const fs = require('fs')
 
+const auth = require('basic-auth')
+const compare = require('tsscmp')
+
+function check (name, pass) {
+  return true && compare(name, 'admin') && compare(pass, 'admin')
+}
+
+
 function getCmdSh (path, callback) {
   fs.readdir(path, (err, files) => {
     files.forEach((file) => {
@@ -40,6 +48,19 @@ getCmdSh('scripts', (cmd) => {
 app.listen(port)
 
 function handler (req, res) {
+  var credentials = auth(req)
+
+  // Check credentials
+  // The "check" function will typically be against your user store
+  if (!credentials || !check(credentials.name, credentials.pass)) {
+    res.statusCode = 401
+    res.setHeader('WWW-Authenticate', 'Basic realm="Please"')
+    res.end('Access denied')
+  }
+  //else {
+  //  res.end('Access granted')
+  //}
+
   //console.log(req.url)
   if(req.url === '/') {
     fs.readFile(__dirname + '/index.html', (err, data) => {
