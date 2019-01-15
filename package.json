@@ -23,13 +23,15 @@
   },
   "dependencies": {
     "basic-auth": "^2.0.1",
+    "koa": "^2.6.2",
+    "koa-static": "^5.0.0",
     "socket.io": "^1.7.3",
     "tsscmp": "^1.0.6",
     "yaml": "^1.2.0"
   },
   "scripts": {
     "dev": "webpack-dev-server --hot --mode development",
-    "build": "webpack --progress --hide-modules --mode production",
+    "build": "webpack --progress --hide-modules --mode production && sed 's#/dist/build.js#./build.js#g' index.html > dist/index.html",
     "start": "node index.js"
   }
 }

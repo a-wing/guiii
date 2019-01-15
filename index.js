@@ -4,17 +4,69 @@ const YAML = require('yaml')
 const fs = require('fs')
 const config = YAML.parse(fs.readFileSync('./config.yml', 'utf8'))
 
-console.log(config)
-console.log(config.server.port)
+//console.log(config)
 //const port = process.env.PORT || 3000
 
 const { exec } = require('child_process')
 
-const app = require('http').createServer(handler)
-const io = require('socket.io')(app)
+const serve = require('koa-static')
+const Koa = require('koa')
+const app = new Koa()
+
 
 const auth = require('basic-auth')
 const compare = require('tsscmp')
+
+// custom 401 handling
+app.use(async (ctx, next) => {
+  try {
+    await next()
+  } catch (err) {
+    if (401 == err.status) {
+      ctx.status = 401
+      ctx.set('WWW-Authenticate', 'Basic')
+      ctx.body = 'cant haz that'
+    } else {
+      throw err
+    }
+  }
+})
+
+app.use(aaa({ name: 'aa', pass: 'aa' }))
+
+function aaa(opts) {
+  opts = opts || {}
+
+  if (!opts.name && !opts.pass)
+    throw new Error('Basic auth `name` and/or `pass` is required')
+
+  if (!opts.realm) opts.realm = 'Secure Area'
+
+    return function basicAuth(ctx, next) {
+      const user = auth(ctx);
+      //if ( !user || (opts.name && !compare(opts.name, user.name)) || (opts.pass && !compare(opts.pass, user.pass)) )
+      if (!user || !check(user.name, user.pass))
+        return ctx.throw(
+          401,
+          null,
+          {
+            headers: {
+              'WWW-Authenticate': 'Basic realm="' + opts.realm.replace(/"/g, '\\"') + '"'
+            }
+          }
+        )
+        return next()
+    }
+}
+
+
+app.use(serve(__dirname + '/dist'))
+
+const server = require('http').Server(app.callback())
+
+//const io = require('socket.io')(app)
+const io = require('socket.io')(server)
+
 
 function check (name, pass) {
   let matching = config.accounts.filter((account) => {
@@ -57,42 +109,8 @@ getCmdSh('scripts', (cmd) => {
 })
 
 
-app.listen(config.server.port)
-
-function handler (req, res) {
-  var credentials = auth(req)
-
-  // Check credentials
-  // The "check" function will typically be against your user store
-  if (!credentials || !check(credentials.name, credentials.pass)) {
-    res.statusCode = 401
-    res.setHeader('WWW-Authenticate', 'Basic realm="Please"')
-    res.end('Access denied')
-  }
-  //else {
-  //  res.end('Access granted')
-  //}
-
-  //console.log(req.url)
-  if(req.url === '/') {
-    fs.readFile(__dirname + '/index.html', (err, data) => {
-      if (err) {
-        res.writeHead(500)
-        return res.end('Error loading index.html')
-      }
-      res.end(data)
-    })
-  } else {
-    fs.readFile(__dirname + req.url, (err, data) => {
-      if (err) {
-        res.writeHead(500)
-        return res.end(`Error loading ${req.url}`)
-      }
-      res.end(data)
-    })
-
-  }
-}
+//app.listen(config.server.port)
+server.listen(config.server.port)
 
 io.on('connection', (socket) => {
   socket.on('get commands', () => {
