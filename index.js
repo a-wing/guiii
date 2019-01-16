@@ -32,31 +32,25 @@ app.use(async (ctx, next) => {
   }
 })
 
-app.use(aaa({ name: 'aa', pass: 'aa' }))
+app.use(basicAuth(config.accounts))
 
-function aaa(opts) {
-  opts = opts || {}
+function basicAuth(list) {
+  const realm = 'Secure Area'
 
-  if (!opts.name && !opts.pass)
-    throw new Error('Basic auth `name` and/or `pass` is required')
-
-  if (!opts.realm) opts.realm = 'Secure Area'
-
-    return function basicAuth(ctx, next) {
-      const user = auth(ctx);
-      //if ( !user || (opts.name && !compare(opts.name, user.name)) || (opts.pass && !compare(opts.pass, user.pass)) )
-      if (!user || !check(user.name, user.pass))
-        return ctx.throw(
-          401,
-          null,
-          {
-            headers: {
-              'WWW-Authenticate': 'Basic realm="' + opts.realm.replace(/"/g, '\\"') + '"'
-            }
+  return (ctx, next) => {
+    const user = auth(ctx)
+    if (!user || !check(user.name, user.pass, list))
+      return ctx.throw(
+        401,
+        null,
+        {
+          headers: {
+            'WWW-Authenticate': 'Basic realm="' + realm.replace(/"/g, '\\"') + '"'
           }
-        )
-        return next()
-    }
+        }
+      )
+      return next()
+  }
 }
 
 
@@ -68,8 +62,8 @@ const server = require('http').Server(app.callback())
 const io = require('socket.io')(server)
 
 
-function check (name, pass) {
-  let matching = config.accounts.filter((account) => {
+function check (name, pass, accounts) {
+  let matching = accounts.filter((account) => {
     return compare(name, account.user) && compare(pass, account.pass)
   })
 
