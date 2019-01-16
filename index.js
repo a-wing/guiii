@@ -79,10 +79,10 @@ function getCmdSh (path, callback) {
           return line.match('# name:')
         })
 
-        //console.info(lineName[0].split(':')[1])
+        //console.info(lineName)
 
         callback({
-          'name': lineName[0].split(':')[1],
+          'name': Object.keys(lineName).length == 0 ? null : lineName[0].split(':')[1].replace(/(^\s*)|(\s*$)/g, ""),
           'value': file
         })
 
@@ -94,9 +94,11 @@ function getCmdSh (path, callback) {
 let commands = []
 
 getCmdSh(__dirname + '/scripts', (cmd) => {
-  //console.info('=================')
-  //console.info(cmd)
-  commands.push(cmd)
+  if (cmd.name != null) {
+    //console.info('=================')
+    //console.info(cmd)
+    commands.push(cmd)
+  }
 })
 
 
@@ -123,7 +125,7 @@ io.on('connection', (socket) => {
     console.log(typeof(msg))
     if (msg.match(/.*\.sh$/)) {
       console.log(`exec shell ${msg}`)
-      msg = `sh scripts/${msg}`
+      msg = `sh ${__dirname}/scripts/${msg}`
     }
 
     exec(msg, (error, stdout, stderr) => {
