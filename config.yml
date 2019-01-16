@@ -7,7 +7,3 @@ accounts:
 server:
   port: 3000
 
-run_path:
-  - commands.json
-  - scripts/
-

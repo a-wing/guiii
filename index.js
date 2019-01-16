@@ -1,11 +1,9 @@
+#!/usr/bin/node
 
 //import YAML from 'yaml'
 const YAML = require('yaml')
 const fs = require('fs')
-const config = YAML.parse(fs.readFileSync('./config.yml', 'utf8'))
-
-//console.log(config)
-//const port = process.env.PORT || 3000
+const config = YAML.parse(fs.readFileSync(__dirname + '/config.yml', 'utf8'))
 
 const { exec } = require('child_process')
 
@@ -82,7 +80,6 @@ function getCmdSh (path, callback) {
         })
 
         //console.info(lineName[0].split(':')[1])
-        //console.info(file)
 
         callback({
           'name': lineName[0].split(':')[1],
@@ -96,7 +93,7 @@ function getCmdSh (path, callback) {
 
 let commands = []
 
-getCmdSh('scripts', (cmd) => {
+getCmdSh(__dirname + '/scripts', (cmd) => {
   //console.info('=================')
   //console.info(cmd)
   commands.push(cmd)
@@ -111,16 +108,10 @@ io.on('connection', (socket) => {
     fs.readFile(__dirname + '/commands.json', (err, data) => {
       if (err) { return }
       //console.info(data.toString())
-      //io.emit('get commands', data.toString())
-      //let commands = JSON.parse(data.toString())
 
       JSON.parse(data.toString()).forEach( (cmd) => {
         commands.push(cmd)
       })
-
-      //getCmdSh('scripts', (cmd) => {
-      //  commands.push(cmd)
-      //})
 
       console.log(commands)
       io.emit('get commands', JSON.stringify(commands))
