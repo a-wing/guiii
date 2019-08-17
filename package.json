@@ -23,6 +23,7 @@
   },
   "dependencies": {
     "basic-auth": "^2.0.1",
+    "jsonrpc-lite": "^2.0.7",
     "koa": "^2.6.2",
     "koa-static": "^5.0.0",
     "socket.io": "^1.7.3",
